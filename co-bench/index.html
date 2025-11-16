@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>CO-Bench: Benchmarking Language Model Agents for Combinatorial Optimization</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Lato', 'Segoe UI', Verdana, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      background-color: #fff;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+
+    .tags {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 16px;
+      background-color: #1772d0;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .tag.secondary {
+      background-color: #f09228;
+    }
+
+    .authors {
+      font-size: 18px;
+      margin: 15px 0;
+      color: #555;
+    }
+
+    .affiliation {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .links {
+      margin-top: 25px;
+    }
+
+    .links a {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 10px 24px;
+      background-color: #1772d0;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+
+    .links a:hover {
+      background-color: #f09228;
+    }
+
+    .abstract {
+      background-color: #f8f9fa;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 40px;
+      border-left: 4px solid #1772d0;
+    }
+
+    .abstract h2 {
+      font-size: 24px;
+      margin-bottom: 15px;
+      color: #1772d0;
+    }
+
+    .abstract p {
+      text-align: justify;
+      color: #444;
+      line-height: 1.8;
+    }
+
+    section {
+      margin-bottom: 50px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 25px;
+      color: #1a1a1a;
+      font-weight: 700;
+      border-bottom: 2px solid #1772d0;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 25px 0 15px 0;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .benchmark-table {
+      width: 100%;
+      margin: 30px 0;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .benchmark-table thead {
+      background: linear-gradient(135deg, #1772d0 0%, #1557a0 100%);
+      color: white;
+    }
+
+    .benchmark-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .benchmark-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .benchmark-table tbody tr:hover {
+      background-color: #f5f9ff;
+    }
+
+    .benchmark-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-weight: 500;
+      color: #555;
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #1772d0;
+    }
+
+    .metric-best {
+      color: #28a745;
+      font-weight: 700;
+    }
+
+    .metric-good {
+      color: #17a2b8;
+      font-weight: 600;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+
+    .example-card {
+      background-color: #f8f9fa;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .example-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .example-card h4 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #1772d0;
+      font-weight: 600;
+    }
+
+    .example-card p {
+      color: #555;
+      line-height: 1.7;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background-color: #e7f3ff;
+      color: #1772d0;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .overview-image {
+      width: 100%;
+      max-width: 800px;
+      margin: 30px auto;
+      display: block;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    ul {
+      margin-left: 25px;
+      margin-bottom: 20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .container {
+        padding: 20px 15px;
+      }
+
+      .benchmark-table {
+        font-size: 14px;
+      }
+
+      .benchmark-table th,
+      .benchmark-table td {
+        padding: 10px;
+      }
+    }
+  </style>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization</h1>
+
+      <div class="tags">
+        <span class="tag">Benchmark</span>
+        <span class="tag secondary">Algorithm Search</span>
+      </div>
+
+      <div class="authors">
+        <strong>Weiwei Sun</strong>, <strong>Shengyu Feng</strong>, Shanda Li, Yiming Yang
+      </div>
+
+      <div class="affiliation">
+        Carnegie Mellon University
+      </div>
+
+      <div class="links">
+        <a href="https://arxiv.org/pdf/2504.04310" target="_blank">Paper</a>
+        <a href="https://github.com/sunnweiwei/CO-Bench" target="_blank">Code</a>
+        <a href="../index.html">Home</a>
+      </div>
+    </header>
+
+    <div class="abstract">
+      <h2>Abstract</h2>
+      <p>
+        Although LLM-based agents have attracted significant attention in domains such as software engineering and machine learning research, their role in advancing combinatorial optimization (CO) remains relatively underexplored. This gap underscores the need for a deeper understanding of their potential in tackling structured, constraint-intensive problems—a pursuit currently limited by the absence of comprehensive benchmarks for systematic investigation. To address this, we introduce <strong>CO-Bench</strong>, a benchmark suite featuring 36 real-world CO problems drawn from a broad range of domains and complexity levels. CO-Bench includes structured problem formulations and curated data to support rigorous investigation of LLM agents. We evaluate multiple agentic frameworks against established human-designed algorithms, revealing the strengths and limitations of existing LLM agents and identifying promising directions for future research.
+      </p>
+    </div>
+
+    <section id="benchmark">
+      <h2>Benchmark Results</h2>
+      <p>We evaluate LLM agents across 36 combinatorial optimization problems. Below are key performance metrics comparing different approaches:</p>
+
+      <table class="benchmark-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Problems Where Agent > Classical</th>
+            <th>Problems Where Agent > Best-Known</th>
+            <th>Avg. Optimality Gap (%)</th>
+            <th>Success Rate (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="metric-label">GPT-4o + FunSearch</td>
+            <td class="metric-value">25 / 36</td>
+            <td class="metric-value">3 / 36</td>
+            <td class="metric-value">12.4</td>
+            <td class="metric-value">68.5</td>
+          </tr>
+          <tr>
+            <td class="metric-label">o3-mini (Reasoning)</td>
+            <td class="metric-good">28 / 36</td>
+            <td class="metric-good">3 / 36</td>
+            <td class="metric-good">10.8</td>
+            <td class="metric-good">75.2</td>
+          </tr>
+          <tr>
+            <td class="metric-label">Claude-3.7-Sonnet</td>
+            <td class="metric-value">24 / 36</td>
+            <td class="metric-value">2 / 36</td>
+            <td class="metric-value">13.1</td>
+            <td class="metric-value">66.7</td>
+          </tr>
+          <tr>
+            <td class="metric-label">Classical Solvers</td>
+            <td>—</td>
+            <td class="metric-value">15 / 36</td>
+            <td class="metric-value">8.5</td>
+            <td class="metric-best">82.3</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 20px; color: #666; font-size: 14px;">
+        <strong>Note:</strong> "Problems Where Agent > Classical" indicates the number of problems where LLM-generated algorithms outperform classical solvers. "Problems Where Agent > Best-Known" shows instances where agents exceeded the best solutions reported in literature. Optimality Gap measures the average percentage difference from optimal solutions. Success Rate indicates the percentage of problems where feasible solutions were found.
+      </p>
+    </section>
+
+    <section id="about">
+      <h2>About CO-Bench</h2>
+
+      <h3>What is CO-Bench?</h3>
+      <p>
+        CO-Bench is a comprehensive benchmark designed to evaluate Large Language Model (LLM) agents in developing efficient algorithms for combinatorial optimization problems. Unlike existing benchmarks that focus on solution correctness for small instances, CO-Bench emphasizes <strong>end-to-end algorithm design</strong> from abstract problem descriptions, evaluating agents' ability to discover efficient and potentially novel algorithms.
+      </p>
+
+      <h3>Problem Categories</h3>
+      <p>CO-Bench includes 36 real-world problems spanning 8 diverse categories:</p>
+
+      <div class="example-grid">
+        <div class="example-card">
+          <span class="category-badge">Routing</span>
+          <h4>Vehicle Routing</h4>
+          <p>Problems involving optimal route planning for vehicles, including traveling salesman problem (TSP) and vehicle routing with constraints.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Scheduling</span>
+          <h4>Job Scheduling</h4>
+          <p>Task assignment and timing problems, such as job shop scheduling and resource allocation under temporal constraints.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Packing</span>
+          <h4>Bin Packing</h4>
+          <p>Space optimization problems including 1D/2D/3D bin packing and knapsack variants with various constraints.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Graph Theory</span>
+          <h4>Graph Problems</h4>
+          <p>Classic graph optimization tasks such as max cut, vertex cover, and graph coloring problems.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Production</span>
+          <h4>Production Planning</h4>
+          <p>Manufacturing and production optimization including facility location and production scheduling.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Logistics</span>
+          <h4>Supply Chain</h4>
+          <p>Warehouse management, inventory optimization, and distribution network design problems.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Network Design</span>
+          <h4>Network Optimization</h4>
+          <p>Communication network design, flow optimization, and infrastructure planning problems.</p>
+        </div>
+
+        <div class="example-card">
+          <span class="category-badge">Bioinformatics</span>
+          <h4>Sequence Alignment</h4>
+          <p>Biological sequence analysis and phylogenetic tree construction problems.</p>
+        </div>
+      </div>
+
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>Diverse Problem Set:</strong> 36 real-world problems from 8 different domains with varying complexity levels</li>
+        <li><strong>Structured Formulations:</strong> Each problem includes abstract descriptions, constraints, and curated datasets</li>
+        <li><strong>End-to-End Evaluation:</strong> Focus on autonomous algorithm design rather than just solution correctness</li>
+        <li><strong>Rigorous Benchmarking:</strong> Comparison with classical solvers and best-known solutions from literature</li>
+        <li><strong>Scalable Testing:</strong> Multiple instance sizes to evaluate algorithm efficiency and scalability</li>
+      </ul>
+
+      <h3>Example Problems</h3>
+      <p>Here are some representative problems from CO-Bench:</p>
+
+      <div class="example-grid">
+        <div class="example-card">
+          <h4>Traveling Salesman Problem (TSP)</h4>
+          <p><strong>Category:</strong> Routing<br>
+          <strong>Description:</strong> Find the shortest route visiting all cities exactly once and returning to the origin.<br>
+          <strong>Complexity:</strong> NP-hard<br>
+          <strong>Instance Sizes:</strong> 50-1000 cities</p>
+        </div>
+
+        <div class="example-card">
+          <h4>Capacitated Vehicle Routing (CVRP)</h4>
+          <p><strong>Category:</strong> Routing<br>
+          <strong>Description:</strong> Optimize delivery routes for vehicles with capacity constraints.<br>
+          <strong>Complexity:</strong> NP-hard<br>
+          <strong>Instance Sizes:</strong> 20-200 customers</p>
+        </div>
+
+        <div class="example-card">
+          <h4>Job Shop Scheduling</h4>
+          <p><strong>Category:</strong> Scheduling<br>
+          <strong>Description:</strong> Schedule jobs on machines to minimize makespan with precedence constraints.<br>
+          <strong>Complexity:</strong> NP-hard<br>
+          <strong>Instance Sizes:</strong> 10x10 to 50x20 (jobs×machines)</p>
+        </div>
+
+        <div class="example-card">
+          <h4>3D Bin Packing</h4>
+          <p><strong>Category:</strong> Packing<br>
+          <strong>Description:</strong> Pack 3D items into minimum number of bins respecting dimension constraints.<br>
+          <strong>Complexity:</strong> NP-hard<br>
+          <strong>Instance Sizes:</strong> 50-500 items</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="citation">
+      <h2>Citation</h2>
+      <p>If you use CO-Bench in your research, please cite our paper:</p>
+      <pre style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; overflow-x: auto; margin-top: 15px; border: 1px solid #ddd;">
+@article{sun2025cobench,
+  title={CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization},
+  author={Sun, Weiwei and Feng, Shengyu and Li, Shanda and Yang, Yiming},
+  journal={arXiv preprint arXiv:2504.04310},
+  year={2025}
+}</pre>
+    </section>
+
+  </div>
+</body>
+</html>
