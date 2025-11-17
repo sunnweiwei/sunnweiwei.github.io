@@ -27,17 +27,25 @@
 
     header {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 30px;
       padding-bottom: 30px;
       border-bottom: 2px solid #f0f0f0;
     }
 
     h1 {
-      font-size: 36px;
+      font-size: 48px;
       font-weight: 700;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #1a1a1a;
-      line-height: 1.3;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      font-weight: 400;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.4;
     }
 
     .tags {
@@ -266,6 +274,70 @@
     .color-reasoning { background-color: #fc8d62; }
     .color-agent { background-color: #8da0cb; }
 
+    .intro-description {
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.8;
+      color: #555;
+      max-width: 900px;
+      margin: 0 auto 40px auto;
+      padding: 0 20px;
+    }
+
+    .problem-box {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .problem-box:hover {
+      background: #e7f3ff;
+      border-color: #1772d0;
+      transform: translateX(4px);
+    }
+
+    .problem-box.active {
+      background: #e7f3ff;
+      border-color: #1772d0;
+    }
+
+    .problem-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      font-size: 14px;
+    }
+
+    .problem-description {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #d0d0d0;
+      color: #555;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .problem-box.active .problem-description {
+      display: block;
+    }
+
+    .category-section {
+      margin-bottom: 35px;
+    }
+
+    .category-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1772d0;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #1772d0;
+    }
+
     .example-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -353,7 +425,8 @@
 <body>
   <div class="container">
     <header>
-      <h1>CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization</h1>
+      <h1>CO-Bench</h1>
+      <div class="subtitle">Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization</div>
 
       <div class="authors">
         <a href="https://sunnweiwei.github.io/">Weiwei Sun</a>,
@@ -366,10 +439,6 @@
         Carnegie Mellon University
       </div>
 
-      <div class="affiliation" style="margin-top: 10px;">
-        <em>AAAI 2026</em>
-      </div>
-
       <div class="links">
         <a href="https://arxiv.org/pdf/2504.04310" target="_blank">Paper</a>
         <a href="https://github.com/sunnweiwei/CO-Bench" target="_blank">Code</a>
@@ -377,9 +446,11 @@
       </div>
     </header>
 
+    <div class="intro-description">
+      CO-Bench evaluates the capability of LLM agents to autonomously design efficient algorithms for 36 challenging combinatorial optimization problems. Unlike benchmarks focused on solution correctness, CO-Bench assesses end-to-end algorithm discovery—from abstract problem descriptions to working implementations that compete with human-designed solvers.
+    </div>
+
     <section id="benchmark">
-      <h2>Benchmark Results</h2>
-      <p>We evaluate LLM agents and various methods across 36 combinatorial optimization problems. All LLM agents use <strong>o3-mini</strong> as the base model, evaluated over <strong>64 iterations</strong> with a <strong>10-second timeout</strong> per solution. Below are four key performance metrics:</p>
 
       <div class="benchmark-viz">
         <div class="benchmark-grid">
@@ -591,6 +662,7 @@
       </div>
 
       <p style="margin-top: 30px; color: #666; font-size: 14px; line-height: 1.8;">
+        <strong>Evaluation Setup:</strong> All LLM agents use <strong>o3-mini</strong> as the base model, evaluated over <strong>64 iterations</strong> with a <strong>10-second timeout</strong> per solution across 36 combinatorial optimization problems.<br><br>
         <strong>Metrics Explained:</strong><br>
         • <strong>Avg Score:</strong> Average normalized solution quality across all 36 problems (higher is better)<br>
         • <strong>Valid Solution:</strong> Percentage of problems where a valid, feasible solution was generated<br>
@@ -607,134 +679,229 @@
         CO-Bench is a comprehensive benchmark designed to evaluate Large Language Model (LLM) agents in developing efficient algorithms for combinatorial optimization problems. Unlike existing benchmarks that focus on solution correctness for small instances, CO-Bench emphasizes <strong>end-to-end algorithm design</strong> from abstract problem descriptions, evaluating agents' ability to discover efficient and potentially novel algorithms.
       </p>
 
-      <h3>Problem Categories</h3>
-      <p>CO-Bench includes 36 real-world problems spanning 8 diverse categories:</p>
+      <h3>Problems</h3>
+      <p>CO-Bench includes 36 real-world problems across diverse categories. Click on each problem to view its full description.</p>
 
-      <div class="example-grid">
-        <div class="example-card">
-          <span class="category-badge">Routing</span>
-          <h4>Vehicle Routing</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Travelling_salesman_problem" target="_blank">TSP</a> (Traveling Salesman Problem)<br>
-          • <a href="https://en.wikipedia.org/wiki/Vehicle_routing_problem" target="_blank">CVRP</a> (Capacitated VRP)<br>
-          • <a href="https://en.wikipedia.org/wiki/Vehicle_routing_problem#VRPTW" target="_blank">VRPTW</a> (VRP with Time Windows)<br>
-          • <a href="https://developers.google.com/optimization/routing/pickup_delivery" target="_blank">PDPTW</a> (Pickup and Delivery with TW)</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 30px;">
+
+        <!-- Routing -->
+        <div class="category-section">
+          <div class="category-title">Routing (2)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">TSP</div>
+            <div class="problem-description">The Traveling Salesman Problem (TSP) is a classic combinatorial optimization problem where, given a set of cities with known pairwise distances, the objective is to find the shortest possible tour that visits each city exactly once and returns to the starting city.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Vehicle Routing: Period Routing</div>
+            <div class="problem-description">The Period Vehicle Routing Problem requires planning delivery routes over a multi-day planning period. Each customer must be assigned one service schedule, and daily tours must be designed respecting capacity constraints while minimizing total distance traveled.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Scheduling</span>
-          <h4>Job Scheduling</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Job-shop_scheduling" target="_blank">JSSP</a> (Job Shop Scheduling)<br>
-          • <a href="https://en.wikipedia.org/wiki/Flow-shop_scheduling" target="_blank">FSSP</a> (Flow Shop Scheduling)<br>
-          • <a href="https://en.wikipedia.org/wiki/Open-shop_scheduling" target="_blank">OSSP</a> (Open Shop Scheduling)<br>
-          • Parallel Machine Scheduling</p>
+        <!-- Scheduling -->
+        <div class="category-section">
+          <div class="category-title">Scheduling (7)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Aircraft Landing</div>
+            <div class="problem-description">Schedule landing times for planes across runways such that each landing occurs within its time window and all separation requirements are satisfied. Minimize total penalty cost from earliness and tardiness while ensuring no constraints are violated.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Common Due Date Scheduling</div>
+            <div class="problem-description">Determine an optimal job sequence that minimizes penalties from earliness and tardiness relative to a common due date, where the due date is computed as a fraction of total processing time.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Crew Scheduling</div>
+            <div class="problem-description">Assign tasks to crews to minimize transition costs between consecutive tasks, ensuring no overlaps, valid transitions exist, duty time limits are respected, and at most K crews are used.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Flow Shop Scheduling</div>
+            <div class="problem-description">Given n jobs and m machines, determine the optimal job sequence that minimizes the makespan. Each job follows the same machine order with specified processing times.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Hybrid Reentrant Shop Scheduling</div>
+            <div class="problem-description">Each job undergoes three operations: initialization on primary machines, setup on a remote server, and final processing on the same primary machine. Minimize makespan while ensuring precedence constraints.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Job Shop Scheduling</div>
+            <div class="problem-description">Assign start times to operations structured into sequential jobs, minimizing makespan while ensuring sequential processing within jobs and non-overlapping operations on machines.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Open Shop Scheduling</div>
+            <div class="problem-description">Schedule jobs across machines to minimize makespan where operations can be scheduled in any order, but each job processes on one machine at a time and each machine processes one job at a time.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Packing</span>
-          <h4>Bin Packing</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Bin_packing_problem" target="_blank">BPP</a> (1D Bin Packing)<br>
-          • <a href="https://en.wikipedia.org/wiki/Cutting_stock_problem" target="_blank">2D Bin Packing</a><br>
-          • 3D Bin Packing<br>
-          • <a href="https://en.wikipedia.org/wiki/Knapsack_problem" target="_blank">Knapsack</a></p>
+        <!-- Packing -->
+        <div class="category-section">
+          <div class="category-title">Packing (7)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Bin Packing - One-Dimensional</div>
+            <div class="problem-description">Minimize the number of bins required to pack items while ensuring the sum of item sizes within each bin does not exceed the specified bin capacity.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Container Loading</div>
+            <div class="problem-description">Given a 3D container and multiple box types, optimally place boxes to maximize volume utilization while respecting orientation constraints, boundary limits, and avoiding overlaps.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Container Loading with Weight Restrictions</div>
+            <div class="problem-description">Maximize container volume utilization by strategically placing boxes while adhering to spatial constraints, load-bearing limits, and orientation restrictions.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Packing Unequal Circles</div>
+            <div class="problem-description">Pack a subset of unequal circles into a fixed circular container to maximize the number of circles packed, ensuring all circles lie within the container and do not overlap.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Packing Unequal Circles (Area)</div>
+            <div class="problem-description">Pack circles into a circular container to maximize total area of packed circles while ensuring containment and non-overlap constraints are satisfied.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Packing Unequal Rectangles and Squares</div>
+            <div class="problem-description">Pack rectangles and squares into a circular container to maximize the number of packed items, with optional 90° rotation, ensuring all items fit within the circle without overlapping.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Packing Unequal Rectangles and Squares (Area)</div>
+            <div class="problem-description">Select and place rectangles/squares into a circular container to maximize total area, allowing 90° rotations while ensuring all corners lie within the circle and no overlaps occur.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Graph Theory</span>
-          <h4>Graph Problems</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Maximum_cut" target="_blank">Max Cut</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Vertex_cover" target="_blank">Minimum Vertex Cover</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Graph_coloring" target="_blank">Graph Coloring</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Steiner_tree_problem" target="_blank">Steiner Tree</a></p>
+        <!-- Cutting Stock -->
+        <div class="category-section">
+          <div class="category-title">Cutting Stock (4)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Assortment Problem</div>
+            <div class="problem-description">Arrange rectangular pieces within stock rectangles to minimize waste area percentage, allowing 90° rotation, with unlimited stock types (max 2 types) and specific quantity constraints per piece type.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Constrained Guillotine Cutting</div>
+            <div class="problem-description">Optimize guillotine-feasible placement of rectangular pieces on stock to maximize total value, where pieces can be cut via straight cuts (vertical/horizontal) that recursively partition the stock.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Constrained Non-Guillotine Cutting</div>
+            <div class="problem-description">Arrange rectangular pieces on stock with fixed dimensions to maximize total value, subject to piece usage constraints [min, max], optional 90° rotation, and non-overlap requirements.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Unconstrained Guillotine Cutting</div>
+            <div class="problem-description">Select and place rectangular pieces within a fixed stock to maximize total value, with optional 90° rotation and at most one use per piece, ensuring no overlaps and complete containment.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Production</span>
-          <h4>Production Planning</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Facility_location_problem" target="_blank">Facility Location</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Lot_sizing" target="_blank">Lot Sizing</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Assembly_line_balancing" target="_blank">Assembly Line Balancing</a><br>
-          • Production Scheduling</p>
+        <!-- Graph Theory -->
+        <div class="category-section">
+          <div class="category-title">Graph Theory (3)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Euclidean Steiner Problem</div>
+            <div class="problem-description">Compute a tree connecting all 2D terminal points with minimum total Euclidean length. Unlike MST, Steiner trees may introduce extra points (Steiner points) to reduce overall length.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Graph Colouring</div>
+            <div class="problem-description">Assign positive integer colors to vertices ensuring no two adjacent vertices share the same color while minimizing the number of distinct colors used.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Maximum Independent Set (MIS)</div>
+            <div class="problem-description">Find the largest subset of vertices in an undirected graph such that no two vertices in the subset are adjacent (connected by an edge).</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Logistics</span>
-          <h4>Supply Chain</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Warehouse_problem" target="_blank">Warehouse Location</a><br>
-          • Inventory Routing<br>
-          • <a href="https://en.wikipedia.org/wiki/Supply_chain_network" target="_blank">Distribution Network Design</a><br>
-          • Order Batching</p>
+        <!-- Assignment & Location -->
+        <div class="category-section">
+          <div class="category-title">Assignment & Location (6)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Assignment Problem</div>
+            <div class="problem-description">Optimally assign n items to n agents based on a cost matrix to minimize total assignment cost, where each item is assigned to exactly one agent.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Generalised Assignment Problem</div>
+            <div class="problem-description">Assign n jobs to m agents such that each job is assigned to exactly one agent and resource consumption per agent does not exceed capacity, optimizing total cost.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Capacitated Warehouse Location</div>
+            <div class="problem-description">Determine which warehouses to open and how to allocate portions of customer demands with splittable demand to minimize total costs while satisfying demand and capacity constraints.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Uncapacitated Warehouse Location</div>
+            <div class="problem-description">Select warehouses to open and assign each customer entirely to one open warehouse to minimize the sum of fixed opening costs and customer assignment costs.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">p-Median - Capacitated</div>
+            <div class="problem-description">Select exactly p customers as medians and assign each customer to minimize total Euclidean distance cost while respecting capacity constraint Q for each median.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">p-Median - Uncapacitated</div>
+            <div class="problem-description">Select p vertices as medians to minimize the sum of shortest distances from each vertex to its nearest median in a graph with precomputed cost matrix.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Network Design</span>
-          <h4>Network Optimization</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Minimum_spanning_tree" target="_blank">Minimum Spanning Tree</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Maximum_flow_problem" target="_blank">Max Flow</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Network_design_problem" target="_blank">Network Design</a><br>
-          • Telecommunication Network Planning</p>
+        <!-- Knapsack -->
+        <div class="category-section">
+          <div class="category-title">Knapsack (2)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Multi-Demand Multidimensional Knapsack</div>
+            <div class="problem-description">Binary optimization extending classical knapsack with both upper-bound (≤) and lower-bound (≥) constraints, maximizing profit subject to resource limits and demand fulfillment requirements.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Multidimensional Knapsack Problem</div>
+            <div class="problem-description">Maximize total profit by selecting items associated with profit and resource consumption across multiple constraints, where resource usage must not exceed capacity for any constraint.</div>
+          </div>
         </div>
 
-        <div class="example-card">
-          <span class="category-badge">Bioinformatics</span>
-          <h4>Sequence Analysis</h4>
-          <p><strong>Problems:</strong><br>
-          • <a href="https://en.wikipedia.org/wiki/Sequence_alignment" target="_blank">Sequence Alignment</a><br>
-          • <a href="https://en.wikipedia.org/wiki/Phylogenetic_tree" target="_blank">Phylogenetic Tree</a><br>
-          • Protein Folding<br>
-          • Gene Selection</p>
-        </div>
-      </div>
+        <!-- Miscellaneous -->
+        <div class="category-section">
+          <div class="category-title">Miscellaneous (5)</div>
 
-      <h3>Key Features</h3>
-      <ul>
-        <li><strong>Diverse Problem Set:</strong> 36 real-world problems from 8 different domains with varying complexity levels</li>
-        <li><strong>Structured Formulations:</strong> Each problem includes abstract descriptions, constraints, and curated datasets</li>
-        <li><strong>End-to-End Evaluation:</strong> Focus on autonomous algorithm design rather than just solution correctness</li>
-        <li><strong>Rigorous Benchmarking:</strong> Comparison with classical solvers and best-known solutions from literature</li>
-        <li><strong>Scalable Testing:</strong> Multiple instance sizes to evaluate algorithm efficiency and scalability</li>
-      </ul>
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Corporate Structuring</div>
+            <div class="problem-description">Construct a valid tree-structured corporate hierarchy rooted at a target to maximize after-tax income, considering different tax codes (Exemption, Deduction, Pooling) and withholding tax rates.</div>
+          </div>
 
-      <h3>Example Problems</h3>
-      <p>Here are some representative problems from CO-Bench:</p>
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Equitable Partitioning Problem</div>
+            <div class="problem-description">Partition individuals with binary attributes into exactly 8 groups to minimize total imbalance, measured as average absolute differences from mean attribute counts across groups.</div>
+          </div>
 
-      <div class="example-grid">
-        <div class="example-card">
-          <h4>Traveling Salesman Problem (TSP)</h4>
-          <p><strong>Category:</strong> Routing<br>
-          <strong>Description:</strong> Find the shortest route visiting all cities exactly once and returning to the origin.<br>
-          <strong>Complexity:</strong> NP-hard<br>
-          <strong>Instance Sizes:</strong> 50-1000 cities</p>
-        </div>
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Resource Constrained Shortest Path</div>
+            <div class="problem-description">Find the shortest path from vertex 1 to vertex n in a directed graph while satisfying resource constraints, where cumulative consumption must fall within bounds for each resource type.</div>
+          </div>
 
-        <div class="example-card">
-          <h4>Capacitated Vehicle Routing (CVRP)</h4>
-          <p><strong>Category:</strong> Routing<br>
-          <strong>Description:</strong> Optimize delivery routes for vehicles with capacity constraints.<br>
-          <strong>Complexity:</strong> NP-hard<br>
-          <strong>Instance Sizes:</strong> 20-200 customers</p>
-        </div>
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Set Covering</div>
+            <div class="problem-description">Select a subset of columns with associated costs such that every row is covered by at least one chosen column, minimizing total cost.</div>
+          </div>
 
-        <div class="example-card">
-          <h4>Job Shop Scheduling</h4>
-          <p><strong>Category:</strong> Scheduling<br>
-          <strong>Description:</strong> Schedule jobs on machines to minimize makespan with precedence constraints.<br>
-          <strong>Complexity:</strong> NP-hard<br>
-          <strong>Instance Sizes:</strong> 10x10 to 50x20 (jobs×machines)</p>
-        </div>
-
-        <div class="example-card">
-          <h4>3D Bin Packing</h4>
-          <p><strong>Category:</strong> Packing<br>
-          <strong>Description:</strong> Pack 3D items into minimum number of bins respecting dimension constraints.<br>
-          <strong>Complexity:</strong> NP-hard<br>
-          <strong>Instance Sizes:</strong> 50-500 items</p>
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Set Partitioning</div>
+            <div class="problem-description">Choose columns to partition rows such that each row is covered exactly once while minimizing total cost of selected columns.</div>
+          </div>
         </div>
       </div>
     </section>
@@ -743,11 +910,11 @@
       <h2>Citation</h2>
       <p>If you use CO-Bench in your research, please cite our paper:</p>
       <pre style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; overflow-x: auto; margin-top: 15px; border: 1px solid #ddd;">
-@article{sun2025cobench,
+@inproceedings{sun2025cobench,
   title={CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization},
   author={Sun, Weiwei and Feng, Shengyu and Li, Shanda and Yang, Yiming},
-  journal={arXiv preprint arXiv:2504.04310},
-  year={2025}
+  booktitle={AAAI Conference on Artificial Intelligence (AAAI)},
+  year={2026}
 }</pre>
     </section>
 
