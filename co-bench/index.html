@@ -447,7 +447,7 @@
     </header>
 
     <div class="intro-description">
-      CO-Bench evaluates the capability of LLM agents to autonomously design efficient algorithms for 36 challenging combinatorial optimization problems. Unlike benchmarks focused on solution correctness, CO-Bench assesses end-to-end algorithm discovery—from abstract problem descriptions to working implementations that compete with human-designed solvers.
+      CO-Bench evaluates the capability of LLM agents to autonomously design efficient algorithms for real-world challenging combinatorial optimization problems.
     </div>
 
     <section id="benchmark">
@@ -679,25 +679,14 @@
         CO-Bench is a comprehensive benchmark designed to evaluate Large Language Model (LLM) agents in developing efficient algorithms for combinatorial optimization problems. Unlike existing benchmarks that focus on solution correctness for small instances, CO-Bench emphasizes <strong>end-to-end algorithm design</strong> from abstract problem descriptions, evaluating agents' ability to discover efficient and potentially novel algorithms.
       </p>
 
+      <img src="evaluation.png" alt="Evaluation Framework" style="width: 100%; max-width: 1200px; margin: 30px auto; display: block; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+      <img src="data.png" alt="Data Statistics" style="width: 50%; max-width: 600px; margin: 30px auto; display: block; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
       <h3>Problems</h3>
       <p>CO-Bench includes 36 real-world problems across diverse categories. Click on each problem to view its full description.</p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 30px;">
-
-        <!-- Routing -->
-        <div class="category-section">
-          <div class="category-title">Routing (2)</div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">TSP</div>
-            <div class="problem-description">The Traveling Salesman Problem (TSP) is a classic combinatorial optimization problem where, given a set of cities with known pairwise distances, the objective is to find the shortest possible tour that visits each city exactly once and returns to the starting city.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Vehicle Routing: Period Routing</div>
-            <div class="problem-description">The Period Vehicle Routing Problem requires planning delivery routes over a multi-day planning period. Each customer must be assigned one service schedule, and daily tours must be designed respecting capacity constraints while minimizing total distance traveled.</div>
-          </div>
-        </div>
 
         <!-- Scheduling -->
         <div class="category-section">
@@ -779,6 +768,71 @@
           </div>
         </div>
 
+        <!-- Assignment & Location -->
+        <div class="category-section">
+          <div class="category-title">Assignment & Location (6)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Assignment Problem</div>
+            <div class="problem-description">Optimally assign n items to n agents based on a cost matrix to minimize total assignment cost, where each item is assigned to exactly one agent.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Generalised Assignment Problem</div>
+            <div class="problem-description">Assign n jobs to m agents such that each job is assigned to exactly one agent and resource consumption per agent does not exceed capacity, optimizing total cost.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Capacitated Warehouse Location</div>
+            <div class="problem-description">Determine which warehouses to open and how to allocate portions of customer demands with splittable demand to minimize total costs while satisfying demand and capacity constraints.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Uncapacitated Warehouse Location</div>
+            <div class="problem-description">Select warehouses to open and assign each customer entirely to one open warehouse to minimize the sum of fixed opening costs and customer assignment costs.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">p-Median - Capacitated</div>
+            <div class="problem-description">Select exactly p customers as medians and assign each customer to minimize total Euclidean distance cost while respecting capacity constraint Q for each median.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">p-Median - Uncapacitated</div>
+            <div class="problem-description">Select p vertices as medians to minimize the sum of shortest distances from each vertex to its nearest median in a graph with precomputed cost matrix.</div>
+          </div>
+        </div>
+
+        <!-- Miscellaneous -->
+        <div class="category-section">
+          <div class="category-title">Miscellaneous (5)</div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Corporate Structuring</div>
+            <div class="problem-description">Construct a valid tree-structured corporate hierarchy rooted at a target to maximize after-tax income, considering different tax codes (Exemption, Deduction, Pooling) and withholding tax rates.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Equitable Partitioning Problem</div>
+            <div class="problem-description">Partition individuals with binary attributes into exactly 8 groups to minimize total imbalance, measured as average absolute differences from mean attribute counts across groups.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Resource Constrained Shortest Path</div>
+            <div class="problem-description">Find the shortest path from vertex 1 to vertex n in a directed graph while satisfying resource constraints, where cumulative consumption must fall within bounds for each resource type.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Set Covering</div>
+            <div class="problem-description">Select a subset of columns with associated costs such that every row is covered by at least one chosen column, minimizing total cost.</div>
+          </div>
+
+          <div class="problem-box" onclick="this.classList.toggle('active')">
+            <div class="problem-title">Set Partitioning</div>
+            <div class="problem-description">Choose columns to partition rows such that each row is covered exactly once while minimizing total cost of selected columns.</div>
+          </div>
+        </div>
+
         <!-- Cutting Stock -->
         <div class="category-section">
           <div class="category-title">Cutting Stock (4)</div>
@@ -824,38 +878,18 @@
           </div>
         </div>
 
-        <!-- Assignment & Location -->
+        <!-- Routing -->
         <div class="category-section">
-          <div class="category-title">Assignment & Location (6)</div>
+          <div class="category-title">Routing (2)</div>
 
           <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Assignment Problem</div>
-            <div class="problem-description">Optimally assign n items to n agents based on a cost matrix to minimize total assignment cost, where each item is assigned to exactly one agent.</div>
+            <div class="problem-title">TSP</div>
+            <div class="problem-description">The Traveling Salesman Problem (TSP) is a classic combinatorial optimization problem where, given a set of cities with known pairwise distances, the objective is to find the shortest possible tour that visits each city exactly once and returns to the starting city.</div>
           </div>
 
           <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Generalised Assignment Problem</div>
-            <div class="problem-description">Assign n jobs to m agents such that each job is assigned to exactly one agent and resource consumption per agent does not exceed capacity, optimizing total cost.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Capacitated Warehouse Location</div>
-            <div class="problem-description">Determine which warehouses to open and how to allocate portions of customer demands with splittable demand to minimize total costs while satisfying demand and capacity constraints.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Uncapacitated Warehouse Location</div>
-            <div class="problem-description">Select warehouses to open and assign each customer entirely to one open warehouse to minimize the sum of fixed opening costs and customer assignment costs.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">p-Median - Capacitated</div>
-            <div class="problem-description">Select exactly p customers as medians and assign each customer to minimize total Euclidean distance cost while respecting capacity constraint Q for each median.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">p-Median - Uncapacitated</div>
-            <div class="problem-description">Select p vertices as medians to minimize the sum of shortest distances from each vertex to its nearest median in a graph with precomputed cost matrix.</div>
+            <div class="problem-title">Vehicle Routing: Period Routing</div>
+            <div class="problem-description">The Period Vehicle Routing Problem requires planning delivery routes over a multi-day planning period. Each customer must be assigned one service schedule, and daily tours must be designed respecting capacity constraints while minimizing total distance traveled.</div>
           </div>
         </div>
 
@@ -871,36 +905,6 @@
           <div class="problem-box" onclick="this.classList.toggle('active')">
             <div class="problem-title">Multidimensional Knapsack Problem</div>
             <div class="problem-description">Maximize total profit by selecting items associated with profit and resource consumption across multiple constraints, where resource usage must not exceed capacity for any constraint.</div>
-          </div>
-        </div>
-
-        <!-- Miscellaneous -->
-        <div class="category-section">
-          <div class="category-title">Miscellaneous (5)</div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Corporate Structuring</div>
-            <div class="problem-description">Construct a valid tree-structured corporate hierarchy rooted at a target to maximize after-tax income, considering different tax codes (Exemption, Deduction, Pooling) and withholding tax rates.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Equitable Partitioning Problem</div>
-            <div class="problem-description">Partition individuals with binary attributes into exactly 8 groups to minimize total imbalance, measured as average absolute differences from mean attribute counts across groups.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Resource Constrained Shortest Path</div>
-            <div class="problem-description">Find the shortest path from vertex 1 to vertex n in a directed graph while satisfying resource constraints, where cumulative consumption must fall within bounds for each resource type.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Set Covering</div>
-            <div class="problem-description">Select a subset of columns with associated costs such that every row is covered by at least one chosen column, minimizing total cost.</div>
-          </div>
-
-          <div class="problem-box" onclick="this.classList.toggle('active')">
-            <div class="problem-title">Set Partitioning</div>
-            <div class="problem-description">Choose columns to partition rows such that each row is covered exactly once while minimizing total cost of selected columns.</div>
           </div>
         </div>
       </div>
