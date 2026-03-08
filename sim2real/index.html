@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind the Sim2Real Gap — CMU LTI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --ink: #1a1611;
+    --rust: #c0392b;
+    --rust-light: #e74c3c;
+    --gold: #b8860b;
+    --muted: #7a6f5e;
+    --border: #d4c9b0;
+    --card-bg: #faf7f2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 3px solid var(--ink);
+    padding: 0 clamp(1rem, 5vw, 6rem);
+    position: sticky; top: 0; z-index: 100;
+    background: var(--cream);
+  }
+
+  .header-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 0;
+  }
+
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  nav a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none; margin-left: 2rem;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--rust); }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 1100px; margin: 0 auto;
+    padding: clamp(3rem, 8vw, 7rem) clamp(1rem, 5vw, 6rem) clamp(2rem, 5vw, 4rem);
+    display: grid; grid-template-columns: 1fr 340px; gap: 4rem; align-items: start;
+  }
+
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--rust); margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .hero-tag::before {
+    content: ''; display: block; width: 28px; height: 2px; background: var(--rust);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 900; line-height: 1.08;
+    color: var(--ink); margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    font-style: italic; color: var(--rust);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem; color: var(--muted);
+    max-width: 540px; margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; color: var(--muted); margin-bottom: 2rem;
+  }
+
+  .hero-authors {
+    margin-bottom: 1.8rem;
+    line-height: 1.9;
+  }
+
+  .author-inline {
+    font-size: 0.88rem; color: var(--ink); font-weight: 500;
+  }
+  .author-inline.equal::after {
+    content: '*'; color: var(--rust); font-size: 0.75em;
+    vertical-align: super; margin-left: 1px;
+  }
+  .sep { color: var(--muted); margin-right: 0.3rem; }
+
+  .hero-affil {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; color: var(--muted);
+    margin-top: 0.4rem; letter-spacing: 0.04em;
+  }
+
+  .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.6rem 1.4rem; border: 2px solid var(--ink);
+    text-decoration: none; color: var(--ink);
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn:hover { background: var(--ink); color: var(--cream); }
+  .btn.filled { background: var(--ink); color: var(--cream); }
+  .btn.filled:hover { background: var(--rust); border-color: var(--rust); }
+
+  /* sidebar card */
+  .hero-card {
+    background: var(--ink); color: var(--cream);
+    padding: 2rem; margin-top: 1rem;
+  }
+
+  .hero-card .card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--rust-light); margin-bottom: 1.5rem;
+  }
+
+  .stat-row {
+    display: flex; flex-direction: column; gap: 1.2rem;
+  }
+
+  .stat { border-left: 3px solid var(--rust); padding-left: 1rem; }
+  .stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; font-weight: 700; line-height: 1;
+    color: #fff;
+  }
+  .stat .desc {
+    font-size: 0.78rem; color: #c0b8aa; margin-top: 0.2rem;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 clamp(1rem, 5vw, 6rem);
+  }
+  .divider hr {
+    border: none; border-top: 1px solid var(--border);
+  }
+
+  /* ── SECTION LAYOUT ── */
+  .section {
+    max-width: 1100px; margin: 0 auto;
+    padding: clamp(2.5rem, 5vw, 5rem) clamp(1rem, 5vw, 6rem);
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--rust); margin-bottom: 0.8rem;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700; line-height: 1.2;
+    margin-bottom: 1.5rem; color: var(--ink);
+  }
+
+  p { margin-bottom: 1.1rem; color: #3d3428; }
+
+  /* ── ABSTRACT ── */
+  .abstract-box {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--rust);
+    background: var(--card-bg);
+    padding: 2rem 2.5rem;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: #4a3f30;
+  }
+
+  /* ── RQ GRID ── */
+  .rq-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px; background: var(--ink);
+    border: 1.5px solid var(--ink);
+    margin-top: 2rem;
+  }
+
+  .rq-card {
+    background: var(--card-bg);
+    padding: 2rem 1.8rem;
+  }
+
+  .rq-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; font-weight: 900;
+    color: var(--border); line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .rq-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    margin-bottom: 0.6rem; color: var(--ink);
+  }
+
+  .rq-body { font-size: 0.88rem; color: var(--muted); }
+
+  /* ── DIMENSION TABLE ── */
+  .dim-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+
+  .dim-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+    text-align: left; padding: 0.8rem 1rem;
+    border-bottom: 2px solid var(--ink);
+    color: var(--muted);
+  }
+
+  .dim-table td {
+    padding: 1rem; font-size: 0.88rem; vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dim-table tr:last-child td { border-bottom: none; }
+
+  .dim-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem; font-weight: 500;
+    background: var(--ink); color: var(--cream);
+    padding: 0.15rem 0.45rem;
+    display: inline-block;
+  }
+
+  .dim-name { font-weight: 600; margin-bottom: 0.3rem; }
+  .dim-desc { color: var(--muted); font-size: 0.83rem; }
+
+  .gap-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem;
+    background: #fde8e6; color: var(--rust);
+    border: 1px solid #f5b0ab;
+  }
+
+  /* ── FINDINGS GRID ── */
+  .findings-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; margin-top: 2rem;
+  }
+
+  .finding-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 1.8rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .finding-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: var(--rust);
+  }
+
+  .finding-icon {
+    font-size: 1.8rem; margin-bottom: 0.8rem;
+  }
+
+  .finding-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600; font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .finding-body { font-size: 0.86rem; color: var(--muted); }
+
+  .highlight {
+    background: #fde8e6; color: var(--rust);
+    font-weight: 600; padding: 0 0.2em;
+  }
+
+  /* ── USI LEADERBOARD ── */
+  .leaderboard { margin-top: 2rem; }
+
+  .lb-row {
+    display: grid; grid-template-columns: 2rem 1fr 80px 120px;
+    align-items: center; gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .lb-row:hover { background: var(--card-bg); }
+
+  .lb-row.header {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 2px solid var(--ink);
+    padding-top: 0;
+  }
+  .lb-row.header:hover { background: transparent; }
+
+  .lb-rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; color: var(--muted); text-align: center;
+  }
+
+  .lb-rank.top { color: var(--rust); font-weight: 500; }
+
+  .lb-name { font-size: 0.88rem; font-weight: 500; }
+  .lb-family {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; color: var(--muted);
+  }
+
+  .lb-cat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .lb-bar-wrap { display: flex; align-items: center; gap: 0.6rem; }
+
+  .lb-bar-bg {
+    flex: 1; height: 6px; background: var(--border); border-radius: 0;
+  }
+
+  .lb-bar-fill {
+    height: 6px; background: var(--rust);
+    transition: width 1s ease;
+  }
+
+  .lb-usi {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem; font-weight: 500;
+    text-align: right;
+  }
+
+  .lb-human {
+    background: #fff8e7; border-left: 3px solid var(--gold);
+  }
+
+  /* ── QUOTE ── */
+  .pull-quote {
+    border-top: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    padding: 2.5rem 0; margin: 3rem 0;
+    text-align: center;
+  }
+
+  .pull-quote blockquote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    font-style: italic; line-height: 1.4;
+    color: var(--ink); max-width: 800px; margin: 0 auto;
+  }
+
+  .pull-quote cite {
+    display: block; margin-top: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+    font-style: normal;
+  }
+
+  /* ── AUTHORS ── */
+  .authors-section {
+    background: var(--ink); color: var(--cream);
+    padding: clamp(2rem, 4vw, 4rem) clamp(1rem, 5vw, 6rem);
+    margin-top: 4rem;
+  }
+
+  .authors-inner { max-width: 1100px; margin: 0 auto; }
+
+  .authors-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--rust-light); margin-bottom: 1.5rem;
+  }
+
+  .authors-list {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .author-chip {
+    font-size: 0.88rem; color: #d4c9b0;
+    font-style: italic;
+  }
+  .author-chip.equal::after {
+    content: '*'; color: var(--rust-light); font-style: normal;
+  }
+
+  .affil {
+    font-size: 0.82rem; color: #8a7f6e; margin-bottom: 0.4rem;
+  }
+
+  .equal-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem; color: var(--rust-light); letter-spacing: 0.1em;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem clamp(1rem, 5vw, 6rem);
+    text-align: center;
+  }
+
+  footer p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.1em; color: var(--muted);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-left { animation: fadeUp 0.7s ease both; }
+  .hero-card { animation: fadeUp 0.7s 0.15s ease both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 800px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-card { display: none; }
+    .rq-grid { grid-template-columns: 1fr; }
+    .findings-grid { grid-template-columns: 1fr; }
+    .lb-row { grid-template-columns: 1.5rem 1fr 60px; }
+    .lb-cat { display: none; }
+    nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo"></div>
+    <nav>
+      <a href="#abstract">Abstract</a>
+      <a href="#findings">Findings</a>
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="#authors">Authors</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <h1>Mind the <em>Sim2Real Gap</em> in User Simulation for Agentic Tasks</h1>
+    <p class="hero-sub">The first large-scale study replacing LLM user simulators with real humans in τ-bench, revealing that current simulators create an "easy mode" that inflates agent performance.</p>
+    <div class="hero-authors">
+      <span class="author-inline equal">Xuhui Zhou</span><span class="sep">,</span>
+      <span class="author-inline equal">Weiwei Sun</span><span class="sep">,</span>
+      <span class="author-inline">Qianou Ma</span><span class="sep">,</span>
+      <span class="author-inline">Yiqing Xie</span><span class="sep">,</span>
+      <span class="author-inline">Jiarui Liu</span><span class="sep">,</span>
+      <span class="author-inline">Weihua Du</span><span class="sep">,</span>
+      <span class="author-inline">Sean Welleck</span><span class="sep">,</span>
+      <span class="author-inline">Yiming Yang</span><span class="sep">,</span>
+      <span class="author-inline">Graham Neubig</span><span class="sep">,</span>
+      <span class="author-inline">Sherry T. Wu</span><span class="sep">,</span>
+      <span class="author-inline">Maarten Sap</span>
+      <div class="hero-affil">Carnegie Mellon University, Language Technologies Institute &nbsp;·&nbsp; <span style="color:var(--muted)">*Equal contribution</span></div>
+    </div>
+    <div class="btn-row">
+      <a href="#" class="btn filled">Read Paper (arXiv)</a>
+      <a href="https://github.com/placeholder/sim2real-user-sim" class="btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:5px"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>GitHub
+      </a>
+      <a href="#leaderboard" class="btn">USI Leaderboard</a>
+    </div>
+  </div>
+
+  <div class="hero-card">
+    <div class="card-label">Key Numbers</div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="num">92.9</div>
+        <div class="desc">Human USI ceiling score</div>
+      </div>
+      <div class="stat">
+        <div class="num">76.0</div>
+        <div class="desc">Best simulator (DeepSeek-V3.1)</div>
+      </div>
+      <div class="stat">
+        <div class="num">70.6%</div>
+        <div class="desc">of reward=0 cases judged successful by humans</div>
+      </div>
+      <div class="stat">
+        <div class="num">+1.11</div>
+        <div class="desc">LLM overestimation of human-likeness (GPT-5.1)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- ABSTRACT -->
+<div class="section" id="abstract">
+  <div class="section-label">Abstract</div>
+  <h2>Why Should We Care About the Sim2Real Gap?</h2>
+  <p>As NLP evaluation shifts from static benchmarks to multi-turn interactive settings, LLM-based simulators have become the dominant approach to creating user proxies — both for generating conversation turns and providing evaluation signals. Yet their faithfulness to real human behavior is rarely verified.</p>
+  <div class="abstract-box">
+    We formalize the <strong>Sim2Real gap</strong> in user simulation and present the first study running the full τ-bench protocol with real humans (451 participants, 165 tasks), benchmarking 31 LLM simulators across proprietary, open-source, and specialized families using <strong>USI</strong> — a metric we introduce to quantify how well LLM simulators resemble real user interactive behaviors and feedback.
+    <br><br>
+    LLM simulators are excessively cooperative, stylistically uniform, and lack realistic frustration or ambiguity, creating an <em>"easy mode"</em> that inflates agent success rates above the human baseline. Rule-based rewards are similarly misaligned, with 70.6% of automatically failed interactions judged successful by the humans who completed them.
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- RESEARCH QUESTIONS -->
+<div class="section">
+  <div class="section-label">Research Questions</div>
+  <h2>Three Lenses on the Gap</h2>
+  <div class="rq-grid">
+    <div class="rq-card">
+      <div class="rq-num">01</div>
+      <div class="rq-title">Behavioral Fidelity</div>
+      <div class="rq-body">Do simulated users behave like real people — in how they phrase requests, reveal information, and react to errors? Divergence here risks optimizing agents toward the wrong goals.</div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">02</div>
+      <div class="rq-title">Evaluative Alignment</div>
+      <div class="rq-body">Do simulated evaluations provide the same quality signals as real humans? Misalignment here means benchmarks misrepresent true agent quality across multiple dimensions.</div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">03</div>
+      <div class="rq-title">Rule-Based Rewards</div>
+      <div class="rq-body">Can automatic binary rewards substitute for human feedback? Many benchmarks rely solely on exact state-match rewards that may not capture what users actually care about.</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- TAXONOMY -->
+<div class="section">
+  <div class="section-label">Framework</div>
+  <h2>A Taxonomy of Sim2Real Gaps</h2>
+  <p>We decompose the gap into <strong>behavioral</strong> dimensions (how simulators interact) and <strong>evaluative</strong> dimensions (how they judge quality). Each dimension is grounded in established theory.</p>
+
+  <table class="dim-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>What It Measures</th>
+        <th>Key Finding</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="dim-code">D1</span><br><div class="dim-name">Communication Styles</div><div class="dim-desc">Politeness, verbosity, stylistic variation</div></td>
+        <td>Surface-level communicative style drawing on communication accommodation theory</td>
+        <td><span class="gap-tag">GAP</span> LLMs are uniformly polite and verbose; only 1% of GPT-4o turns are short vs. 29% for humans</td>
+      </tr>
+      <tr>
+        <td><span class="dim-code">D2</span><br><div class="dim-name">Information Density</div><div class="dim-desc">Front-loading, identifier tokens, words per turn</div></td>
+        <td>How much information is shared per turn — operationalizing Grice's cooperative principle</td>
+        <td><span class="gap-tag">GAP</span> Simulators front-load complete details; real users reveal information incrementally</td>
+      </tr>
+      <tr>
+        <td><span class="dim-code">D3</span><br><div class="dim-name">Clarification Behavior</div><div class="dim-desc">Uncertainty, pushback, info-seeking questions</div></td>
+        <td>Information-seeking and grounding behaviors in conversation</td>
+        <td><span class="gap-tag">GAP</span> Some models over-hedge (GPT-4o: 14.6% uncertainty vs. 7.3% human), others are overconfident</td>
+      </tr>
+      <tr>
+        <td><span class="dim-code">D4</span><br><div class="dim-name">Error Reaction</div><div class="dim-desc">Frustration, accusatory language, pivot behavior</div></td>
+        <td>How users respond when agents make mistakes</td>
+        <td><span class="gap-tag">GAP</span> Simulators quietly pivot; real humans express frustration and become less cooperative</td>
+      </tr>
+      <tr>
+        <td><span class="dim-code">Eval</span><br><div class="dim-name">Evaluative Alignment</div><div class="dim-desc">Quality ratings across 6 dimensions</div></td>
+        <td>Agreement between LLM and human judgments of interaction quality</td>
+        <td><span class="gap-tag">GAP</span> LLMs inflate quality ratings, especially human-likeness (+1.11) and reuse intent (+0.83)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- PULL QUOTE -->
+<div class="section">
+  <div class="pull-quote">
+    <blockquote>
+      "By volunteering all relevant information upfront, cooperating through agent errors, and never expressing real frustration, simulators remove precisely the conversational challenges that make customer-service interactions difficult."
+    </blockquote>
+    <cite>— From the paper, Section 5</cite>
+  </div>
+</div>
+
+<!-- FINDINGS -->
+<div class="section" id="findings">
+  <div class="section-label">Key Findings</div>
+  <h2>What We Discovered</h2>
+  <div class="findings-grid">
+    <div class="finding-card">
+      <div class="finding-icon">🎭</div>
+      <div class="finding-title">Simulators Create an "Easy Mode"</div>
+      <div class="finding-body">Most general-purpose LLM simulators yield <span class="highlight">higher agent success rates</span> than the human baseline of 63.6%, with top models reaching 77.8%. Agents appear more capable than they truly are when evaluated with LLM users.</div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-icon">📊</div>
+      <div class="finding-title">LLM Evaluators Are Systematically Biased</div>
+      <div class="finding-body">GPT-5.1 overestimates AI human-likeness by <span class="highlight">55% of the rating scale</span> and overall score by 18%, while simultaneously underestimating task success. This asymmetric bias disqualifies LLMs as reliable quality proxies.</div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-icon">⚠️</div>
+      <div class="finding-title">Binary Rewards Are Orthogonal to User Perception</div>
+      <div class="finding-body"><span class="highlight">70.6% of reward=0 interactions</span> are judged successful by the real humans who completed them. Exact database-state matching catches discrepancies that users never notice during the interaction.</div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-icon">🔗</div>
+      <div class="finding-title">Capability ≠ Simulation Fidelity</div>
+      <div class="finding-body">Higher general model capability does <span class="highlight">not reliably translate</span> to more faithful user simulation — except within the GPT family (r=0.91). Claude (r=0.48) and Gemini (r=−0.52) show no significant correlation.</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- LEADERBOARD -->
+<div class="section" id="leaderboard">
+  <div class="section-label">USI Leaderboard</div>
+  <h2>User-Sim Index Rankings</h2>
+  <p>USI aggregates behavioral dimensions D1–D4, outcome calibration (ECE), and evaluative alignment into a single 0–100 score. Higher = closer to real human behavior.</p>
+
+  <div class="leaderboard">
+    <div class="lb-row header">
+      <div>#</div>
+      <div>Model</div>
+      <div>Category</div>
+      <div style="text-align:right">USI Score</div>
+    </div>
+
+    <!-- Human baseline -->
+    <div class="lb-row lb-human">
+      <div class="lb-rank" style="color:var(--gold)">—</div>
+      <div>
+        <div class="lb-name">Human (inter-annotator)</div>
+        <div class="lb-family">Upper bound</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:92.9%;background:var(--gold)"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Human</div>
+      <div class="lb-usi" style="color:var(--gold)">92.9</div>
+    </div>
+
+    <!-- Top models -->
+    <div class="lb-row">
+      <div class="lb-rank top">1</div>
+      <div>
+        <div class="lb-name">DeepSeek-V3.1</div>
+        <div class="lb-family">Open-source</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:76%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Open-Source</div>
+      <div class="lb-usi">76.0</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank top">2</div>
+      <div>
+        <div class="lb-name">Llama-4-Maverick</div>
+        <div class="lb-family">Open-source</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:73.9%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Open-Source</div>
+      <div class="lb-usi">73.9</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank top">3</div>
+      <div>
+        <div class="lb-name">Gemini2.0-Flash</div>
+        <div class="lb-family">Proprietary · Google</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:73.3%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">73.3</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">4</div>
+      <div>
+        <div class="lb-name">Qwen3-235B</div>
+        <div class="lb-family">Open-source</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:71.2%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Open-Source</div>
+      <div class="lb-usi">71.2</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">5</div>
+      <div>
+        <div class="lb-name">GPT-5.1</div>
+        <div class="lb-family">Proprietary · OpenAI</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:70.9%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">70.9</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">6</div>
+      <div>
+        <div class="lb-name">GPT-5</div>
+        <div class="lb-family">Proprietary · OpenAI</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:70.6%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">70.6</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">7</div>
+      <div>
+        <div class="lb-name">GPT-5-mini</div>
+        <div class="lb-family">Proprietary · OpenAI</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:70.3%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">70.3</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">—</div>
+      <div>
+        <div class="lb-name">Claude-3.5-Sonnet</div>
+        <div class="lb-family">Proprietary · Anthropic</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:66.1%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">66.1</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">—</div>
+      <div>
+        <div class="lb-name">Claude-Sonnet-4</div>
+        <div class="lb-family">Proprietary · Anthropic</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:61.5%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">61.5</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank">—</div>
+      <div>
+        <div class="lb-name">GPT-3.5-turbo</div>
+        <div class="lb-family">Proprietary · OpenAI</div>
+        <div class="lb-bar-wrap" style="margin-top:0.4rem">
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:58%"></div></div>
+        </div>
+      </div>
+      <div class="lb-cat">Proprietary</div>
+      <div class="lb-usi">58.0</div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:1.2rem;font-size:0.82rem;color:var(--muted)">
+    Showing selected models. See Table 1 in the paper for all 31 simulators.
+    USI = (D1 + D2 + D3 + D4 + (1−ECE)×100 + Eval) / 6.
+  </p>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- CONCLUSION -->
+<div class="section">
+  <div class="section-label">Takeaways</div>
+  <h2>What the Community Should Do</h2>
+  <p>Our findings do <em>not</em> invalidate LLM-as-user benchmarks — they remain valuable for rapid, reproducible agent development. Rather, we argue the community should <strong>mind the Sim2Real gap</strong>:</p>
+  <p><strong>1. Acknowledge limited applicability</strong> — simulation fidelity varies by domain, task type, and user persona. Do not treat simulator results as ground truth.</p>
+  <p><strong>2. Measure the gap systematically</strong> — use human validation studies periodically, especially before claiming state-of-the-art performance on agent benchmarks.</p>
+  <p><strong>3. Design evaluation accounting for simulator gaps</strong> — report USI alongside agent performance, and use hybrid metrics that combine simulated scale with human calibration.</p>
+  <p><strong>4. Build better user simulators</strong> — future work should target the specific behavioral gaps identified here: realistic frustration, incremental information release, and non-cooperative error reactions.</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>Mind the Sim2Real Gap in User Simulation for Agentic Tasks · COLM 2026 · Carnegie Mellon University</p>
+</footer>
+
+</body>
+</html>
