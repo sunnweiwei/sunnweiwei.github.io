@@ -247,6 +247,25 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
+
+  /* Mobile: stack buttons vertically so both fit on narrow screens */
+  @media (max-width: 720px) {
+    #choices {
+      flex-direction: column;
+      gap: 16px;
+      width: 88%;
+      bottom: 8%;
+    }
+    .btn {
+      width: 100%;
+      min-width: 0;
+      padding: 16px 20px;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+    }
+    #title { font-size: 1.6rem; top: 20px; left: 22px; }
+    #story, #credits { display: none; }
+  }
 </style>
 </head>
 <body>
