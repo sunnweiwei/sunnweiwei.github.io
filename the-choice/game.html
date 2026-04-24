@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Choice</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #fff;
+    cursor: default;
+  }
+  #stage {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  video {
+    position: absolute;
+    top: 50%; left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto; height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    z-index: 1;
+  }
+  video.active { opacity: 1; }
+
+  /* Cinematic vignette */
+  #vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background: radial-gradient(ellipse at center,
+      rgba(0,0,0,0) 40%,
+      rgba(0,0,0,0.55) 80%,
+      rgba(0,0,0,0.9) 100%);
+  }
+
+  /* Intro overlay — darkens the first frame of video 1 */
+  #intro {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transition: background 1.6s ease, backdrop-filter 1.6s ease, opacity 1.2s ease 0.4s;
+  }
+  #intro .press {
+    font-size: 1.6rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    animation: pulse 2s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+  }
+  #intro.hidden {
+    opacity: 0;
+    pointer-events: none;
+    background: rgba(0,0,0,0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Title - top left */
+  #title {
+    position: absolute;
+    top: 38px;
+    left: 48px;
+    z-index: 12;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 2.4rem;
+    line-height: 1.05;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.92);
+    text-transform: uppercase;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.7);
+    pointer-events: none;
+  }
+  #title span { display: block; }
+  #title .w2 { padding-left: 28px; font-style: italic; }
+
+  /* Story box (left) */
+  .overlay-box {
+    position: absolute;
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.38);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 28px 34px;
+    color: rgba(255,255,255,0.92);
+    font-size: 1.15rem;
+    line-height: 1.9;
+    letter-spacing: 0.04em;
+    max-width: 380px;
+    opacity: 0;
+    transition: opacity 1s ease;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .overlay-box.show { opacity: 1; }
+
+  #story {
+    top: 50%;
+    left: 6%;
+    transform: translateY(-50%);
+  }
+  #story p {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    margin-bottom: 10px;
+  }
+  #story p.show { opacity: 1; transform: translateY(0); }
+
+  /* Credits (right) - scrolling movie style */
+  #credits {
+    top: 0;
+    right: 6%;
+    bottom: 0;
+    transform: none;
+    max-width: 340px;
+    width: 340px;
+    font-size: 1rem;
+    line-height: 1.8;
+    padding: 0;
+    background: rgba(10, 10, 10, 0.38);
+    overflow: hidden;
+    height: 100vh;
+    border-radius: 0;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-top: none;
+    border-bottom: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  }
+  #credits .scroll {
+    position: absolute;
+    top: 20%;
+    left: 0;
+    right: 0;
+    padding: 0 30px;
+    text-align: center;
+  }
+  #credits.show .scroll {
+    animation: creditScroll 10s linear forwards;
+  }
+  @keyframes creditScroll {
+    from { top: 100%; }
+    to   { top: -140%; }
+  }
+  #credits .thankyou {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+  #credits.show .thankyou {
+    opacity: 1;
+    transition-delay: 9.5s;
+  }
+  #credits h3 {
+    font-size: 1.2rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    margin: 40px 0 30px 0;
+    font-weight: normal;
+  }
+  #credits .block {
+    margin-bottom: 34px;
+  }
+  #credits .role {
+    display: block;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 6px;
+  }
+  #credits .name {
+    display: block;
+    color: rgba(255,255,255,0.95);
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* Choice buttons */
+  #choices {
+    position: absolute;
+    bottom: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 40px;
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+  }
+  #choices.show { opacity: 1; pointer-events: auto; }
+  .btn {
+    background: rgba(10,10,10,0.42);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 22px 54px;
+    color: rgba(255,255,255,0.9);
+    font-family: inherit;
+    font-size: 1.25rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 300px;
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  /* Mobile: stack buttons vertically so both fit on narrow screens */
+  @media (max-width: 720px) {
+    #choices {
+      flex-direction: column;
+      gap: 16px;
+      width: 88%;
+      bottom: 8%;
+    }
+    .btn {
+      width: 100%;
+      min-width: 0;
+      padding: 16px 20px;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+    }
+    #title { font-size: 1.6rem; top: 20px; left: 22px; }
+    #story, #credits { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="v1" src="asserts/video1.mp4" playsinline preload="auto"></video>
+  <video id="v2" src="asserts/video2.mp4" playsinline preload="auto"></video>
+  <video id="v3" src="asserts/video3.mp4" playsinline preload="auto"></video>
+
+  <div id="vignette"></div>
+
+  <div id="title"><span class="w1">The</span><span class="w2">Choice</span></div>
+
+  <div id="story" class="overlay-box">
+    <p>You are on a quiet walk at night.</p>
+    <p>Train speeds toward the person.</p>
+    <p>You realize your choice can redirect the train.</p>
+  </div>
+
+  <div id="choices">
+    <button class="btn" id="btnLeft">Do Not Pull</button>
+    <button class="btn" id="btnRight">Pull the Lever</button>
+  </div>
+
+  <div id="credits" class="overlay-box">
+    <div class="scroll">
+      <h3>The Choice</h3>
+      <div class="block"><span class="role">Directed by</span><span class="name">GPT-5.4</span></div>
+      <div class="block"><span class="role">Written by</span><span class="name">GPT-5.4</span></div>
+      <div class="block"><span class="role">Starring</span><span class="name">You</span></div>
+      <div class="block"><span class="role">Game Development</span><span class="name">Claude 4.7</span></div>
+      <div class="block"><span class="role">Cinematography</span><span class="name">Sora-2 Pro</span></div>
+      <div class="block"><span class="role">Edited by</span><span class="name">Sora-2 Pro</span></div>
+      <div class="block"><span class="role">Original Score</span><span class="name">Philippa Ruth Foot</span></div>
+      <div class="block"><span class="role">Production Design</span><span class="name">DreamQuest</span></div>
+      <div class="block"><span class="role">Sound Design</span><span class="name">Sora-2 Pro</span></div>
+      <div class="block"><span class="role">Costume Design</span><span class="name">Sora-2 Pro</span></div>
+      <div class="block"><span class="role">Visual Effects</span><span class="name">Sora-2 Pro</span></div>
+      <div class="block"><span class="role">Casting</span><span class="name">DreamQuest</span></div>
+      <div class="block"><span class="role">Executive Producers</span><span class="name">DreamQuest</span><span class="name">Clara Yoon</span></div>
+      <div class="block"><span class="role">Produced by</span><span class="name">DreamQuest</span></div>
+    </div>
+    <div class="thankyou">
+      <h3>Thank You</h3>
+    </div>
+  </div>
+
+  <div id="intro">
+    <div class="press">Press any key to start</div>
+  </div>
+</div>
+
+<script>
+  const v1 = document.getElementById('v1');
+  const v2 = document.getElementById('v2');
+  const v3 = document.getElementById('v3');
+  const intro = document.getElementById('intro');
+  const story = document.getElementById('story');
+  const storyLines = story.querySelectorAll('p');
+  const choices = document.getElementById('choices');
+  const credits = document.getElementById('credits');
+  const btnLeft = document.getElementById('btnLeft');
+  const btnRight = document.getElementById('btnRight');
+
+  let started = false;
+
+  // Show the first frame of video 1 behind the intro overlay
+  v1.classList.add('active');
+  v1.muted = true;
+  const showFirstFrame = () => {
+    try { v1.currentTime = 0.05; } catch (e) {}
+    v1.pause();
+  };
+  if (v1.readyState >= 1) showFirstFrame();
+  else v1.addEventListener('loadedmetadata', showFirstFrame, { once: true });
+
+  function startExperience() {
+    if (started) return;
+    started = true;
+    intro.classList.add('hidden');
+    v1.muted = false;
+    v1.play().catch(() => { v1.muted = true; v1.play().catch(() => {}); });
+
+    // Reveal story text line by line
+    setTimeout(() => story.classList.add('show'), 600);
+    const lineDelay = 2200;
+    const lineStart = 1200;
+    storyLines.forEach((line, i) => {
+      setTimeout(() => line.classList.add('show'), lineStart + i * lineDelay);
+    });
+    // After all lines shown, hold briefly then fade the note out
+    const allShown = lineStart + storyLines.length * lineDelay;
+    setTimeout(() => story.classList.remove('show'), allShown + 1500);
+  }
+
+  document.addEventListener('keydown', startExperience);
+  document.addEventListener('click', startExperience);
+
+  // Show choices near the end of video 1 + gradually slow playback
+  v1.addEventListener('timeupdate', () => {
+    if (!v1.duration) return;
+    const remaining = v1.duration - v1.currentTime;
+    if (remaining <= 4) {
+      choices.classList.add('show');
+    }
+    // Ease playback rate from 1.0 down to ~0.25 over the last 4 seconds
+    if (remaining <= 4 && remaining > 0) {
+      const t = remaining / 4; // 1 -> 0
+      const rate = 0.25 + (1 - 0.25) * t * t; // ease-in
+      v1.playbackRate = Math.max(0.25, Math.min(1, rate));
+    }
+  });
+
+  v1.addEventListener('ended', () => {
+    // Freeze on last frame if user hasn't chosen
+    v1.pause();
+    v1.playbackRate = 1;
+  });
+
+  function playEnding(video) {
+    choices.classList.remove('show');
+    story.classList.remove('show');
+    v1.pause();
+    v1.currentTime = 0;
+    v1.playbackRate = 1;
+    v1.classList.remove('active');
+    video.classList.add('active');
+    video.play().catch(() => {});
+
+    let creditsShown = false;
+    video.addEventListener('timeupdate', function onTime() {
+      if (!video.duration) return;
+      const remaining = video.duration - video.currentTime;
+      if (remaining <= 7 && !creditsShown) {
+        credits.classList.add('show');
+        creditsShown = true;
+      }
+      // Ease playback rate from 1.0 down to ~0.2 only in the final 1.8 seconds
+      if (remaining <= 1.8 && remaining > 0) {
+        const t = remaining / 1.8;
+        const rate = 0.2 + (1 - 0.2) * t * t;
+        video.playbackRate = Math.max(0.2, Math.min(1, rate));
+      }
+    });
+
+    video.addEventListener('ended', () => {
+      video.pause();
+      video.playbackRate = 1;
+      credits.classList.add('show');
+    });
+  }
+
+  btnLeft.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playEnding(v2);
+  });
+  btnRight.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playEnding(v3);
+  });
+</script>
+</body>
+</html>

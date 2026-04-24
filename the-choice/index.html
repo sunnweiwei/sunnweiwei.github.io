@@ -3,428 +3,620 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>The Choice</title>
+<title>DreamQuest — AI Game Generator</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #09080f;
+    --surface: rgba(255,255,255,0.055);
+    --border: rgba(255,255,255,0.1);
+    --text: rgba(255,255,255,0.92);
+    --text-dim: rgba(255,255,255,0.45);
+    --accent: #a855f7;
+    --accent-glow: rgba(168,85,247,0.35);
+  }
+
   html, body {
     width: 100%; height: 100%;
-    background: #000;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     overflow: hidden;
-    font-family: 'Georgia', 'Times New Roman', serif;
-    color: #fff;
-    cursor: default;
   }
-  #stage {
+
+  /* ── ANIMATED BACKGROUND ── */
+  #bg-canvas {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
-  video {
-    position: absolute;
-    top: 50%; left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto; height: auto;
-    transform: translate(-50%, -50%);
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    z-index: 1;
-  }
-  video.active { opacity: 1; }
-
-  /* Cinematic vignette */
-  #vignette {
-    position: absolute;
-    inset: 0;
+    z-index: 0;
     pointer-events: none;
-    z-index: 5;
-    background: radial-gradient(ellipse at center,
-      rgba(0,0,0,0) 40%,
-      rgba(0,0,0,0.55) 80%,
-      rgba(0,0,0,0.9) 100%);
   }
 
-  /* Intro overlay — darkens the first frame of video 1 */
-  #intro {
-    position: absolute;
+  /* Radial orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+  }
+  .orb-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, #5b21b6 0%, transparent 70%);
+    top: -160px; left: -140px;
+    animation: drift1 18s ease-in-out infinite alternate;
+  }
+  .orb-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #1d4ed8 0%, transparent 70%);
+    bottom: -120px; right: -100px;
+    animation: drift2 22s ease-in-out infinite alternate;
+  }
+  .orb-3 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: drift3 14s ease-in-out infinite alternate;
+    opacity: 0.28;
+  }
+  @keyframes drift1 {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(80px, 60px) scale(1.12); }
+  }
+  @keyframes drift2 {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(-60px, -80px) scale(1.08); }
+  }
+  @keyframes drift3 {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to   { transform: translate(-42%, -58%) scale(1.18); }
+  }
+
+  /* Noise overlay for texture */
+  body::after {
+    content: '';
+    position: fixed;
     inset: 0;
-    z-index: 20;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.04;
+  }
+
+  /* ── PAGES ── */
+  .page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+  }
+  .page.hidden { opacity: 0; pointer-events: none; }
+
+  /* ── LANDING PAGE ── */
+  #page-chat {
+    justify-content: space-between;
+  }
+
+  .top-bar {
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.78);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    transition: background 1.6s ease, backdrop-filter 1.6s ease, opacity 1.2s ease 0.4s;
-  }
-  #intro .press {
-    font-size: 1.6rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.85);
-    animation: pulse 2s ease-in-out infinite;
-    text-shadow: 0 0 20px rgba(0,0,0,0.8);
-  }
-  #intro.hidden {
-    opacity: 0;
-    pointer-events: none;
-    background: rgba(0,0,0,0);
-    backdrop-filter: blur(0);
-    -webkit-backdrop-filter: blur(0);
+    justify-content: space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: rgba(9,8,15,0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-
-  /* Title - top left */
-  #title {
-    position: absolute;
-    top: 38px;
-    left: 48px;
-    z-index: 12;
-    font-family: 'Georgia', 'Times New Roman', serif;
-    font-size: 2.4rem;
-    line-height: 1.05;
-    letter-spacing: 0.12em;
-    color: rgba(255,255,255,0.92);
-    text-transform: uppercase;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.7);
-    pointer-events: none;
-  }
-  #title span { display: block; }
-  #title .w2 { padding-left: 28px; font-style: italic; }
-
-  /* Story box (left) */
-  .overlay-box {
-    position: absolute;
-    z-index: 10;
-    background: rgba(10, 10, 10, 0.38);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 28px 34px;
-    color: rgba(255,255,255,0.92);
-    font-size: 1.15rem;
-    line-height: 1.9;
-    letter-spacing: 0.04em;
-    max-width: 380px;
-    opacity: 0;
-    transition: opacity 1s ease;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-  }
-  .overlay-box.show { opacity: 1; }
-
-  #story {
-    top: 50%;
-    left: 6%;
-    transform: translateY(-50%);
-  }
-  #story p {
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 1.2s ease, transform 1.2s ease;
-    margin-bottom: 10px;
-  }
-  #story p.show { opacity: 1; transform: translateY(0); }
-
-  /* Credits (right) - scrolling movie style */
-  #credits {
-    top: 0;
-    right: 6%;
-    bottom: 0;
-    transform: none;
-    max-width: 340px;
-    width: 340px;
-    font-size: 1rem;
-    line-height: 1.8;
-    padding: 0;
-    background: rgba(10, 10, 10, 0.38);
-    overflow: hidden;
-    height: 100vh;
-    border-radius: 0;
-    border-left: 1px solid rgba(255,255,255,0.08);
-    border-right: 1px solid rgba(255,255,255,0.08);
-    border-top: none;
-    border-bottom: none;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-  }
-  #credits .scroll {
-    position: absolute;
-    top: 20%;
-    left: 0;
-    right: 0;
-    padding: 0 30px;
-    text-align: center;
-  }
-  #credits.show .scroll {
-    animation: creditScroll 10s linear forwards;
-  }
-  @keyframes creditScroll {
-    from { top: 100%; }
-    to   { top: -140%; }
-  }
-  #credits .thankyou {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    transform: translateY(-50%);
-    text-align: center;
-    opacity: 0;
-    transition: opacity 1.5s ease;
-  }
-  #credits.show .thankyou {
-    opacity: 1;
-    transition-delay: 9.5s;
-  }
-  #credits h3 {
-    font-size: 1.2rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.85);
-    text-align: center;
-    margin: 40px 0 30px 0;
-    font-weight: normal;
-  }
-  #credits .block {
-    margin-bottom: 34px;
-  }
-  #credits .role {
-    display: block;
-    color: rgba(255,255,255,0.55);
-    text-transform: uppercase;
-    font-size: 0.72rem;
-    letter-spacing: 0.3em;
-    margin-bottom: 6px;
-  }
-  #credits .name {
-    display: block;
-    color: rgba(255,255,255,0.95);
-    font-size: 1.05rem;
-    letter-spacing: 0.08em;
-  }
-
-  /* Choice buttons */
-  #choices {
-    position: absolute;
-    bottom: 12%;
-    left: 50%;
-    transform: translateX(-50%);
+  .logo {
     display: flex;
-    gap: 40px;
-    z-index: 15;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 1.2s ease;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
-  #choices.show { opacity: 1; pointer-events: auto; }
-  .btn {
-    background: rgba(10,10,10,0.42);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    padding: 22px 54px;
-    color: rgba(255,255,255,0.9);
-    font-family: inherit;
-    font-size: 1.25rem;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 300px;
-  }
-  .btn:hover {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.5);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
   }
 
-  /* Mobile: stack buttons vertically so both fit on narrow screens */
-  @media (max-width: 720px) {
-    #choices {
-      flex-direction: column;
-      gap: 16px;
-      width: 88%;
-      bottom: 8%;
-    }
-    .btn {
-      width: 100%;
-      min-width: 0;
-      padding: 16px 20px;
-      font-size: 1rem;
-      letter-spacing: 0.2em;
-    }
-    #title { font-size: 1.6rem; top: 20px; left: 22px; }
-    #story, #credits { display: none; }
+  .demo-badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  /* Center hero */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 0 24px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .hero-title {
+    font-size: clamp(1.9rem, 4vw, 2.8rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 30%, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.01em;
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    max-width: 440px;
+    line-height: 1.7;
+  }
+
+  /* Suggestion chips */
+  .chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    pointer-events: auto;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(168,85,247,0.08);
+  }
+
+  /* Input area */
+  .input-area {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px 28px;
+    flex-shrink: 0;
+  }
+  .input-wrap {
+    position: relative;
+    background: rgba(20,14,35,0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 14px 16px 14px 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrap:focus-within {
+    border-color: rgba(168,85,247,0.5);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  #prompt-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.55;
+    resize: none;
+    min-height: 24px;
+    max-height: 180px;
+    overflow-y: auto;
+    font-family: inherit;
+  }
+  #prompt-input::placeholder { color: var(--text-dim); }
+
+  .send-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    opacity: 0.45;
+  }
+  .send-btn.active { opacity: 1; }
+  .send-btn.active:hover { transform: scale(1.06); background: #9333ea; }
+  .send-btn svg { width: 18px; height: 18px; }
+
+  .input-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+  .input-hint a { color: var(--accent); text-decoration: none; }
+
+  /* ── BUILDING PAGE ── */
+  #page-building {
+    justify-content: center;
+    gap: 40px;
+  }
+
+  .build-card {
+    width: 100%;
+    max-width: 560px;
+    background: rgba(20,14,35,0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 44px;
+    margin: 0 24px;
+  }
+
+  .build-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .build-header .logo-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+  .build-header h2 { font-size: 1.25rem; font-weight: 600; }
+  .build-header p { font-size: 0.88rem; color: var(--text-dim); margin-top: 2px; }
+
+  /* Prompt echo */
+  .prompt-echo {
+    background: rgba(168,85,247,0.08);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 14px; }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    transition: color 0.4s;
+  }
+  .step.done { color: var(--text); }
+  .step.active { color: var(--text); }
+
+  .step-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    transition: all 0.4s;
+  }
+  .step.done .step-icon {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #fff;
+  }
+  .step.active .step-icon {
+    border-color: var(--accent);
+    animation: spin-border 1s linear infinite;
+  }
+  @keyframes spin-border {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin-top: 28px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7, #6366f1);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* ── DONE PAGE ── */
+  #page-done {
+    justify-content: center;
+  }
+  .done-card {
+    width: 100%;
+    max-width: 560px;
+    background: rgba(20,14,35,0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 44px;
+    margin: 0 24px;
+    text-align: center;
+  }
+  .done-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 24px;
+    animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes pop {
+    from { transform: scale(0.4); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  .done-card h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .done-card p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+  .play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 40px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+  }
+  .play-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(168,85,247,0.4);
+  }
+  .play-btn svg { width: 20px; height: 20px; }
+
+  .done-note {
+    margin-top: 20px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .done-note strong { color: rgba(255,255,255,0.55); }
+
+  /* ── DISCLAIMER FOOTER ── */
+  .disclaimer {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.22);
+    pointer-events: none;
+    z-index: 99;
   }
 </style>
 </head>
 <body>
-<div id="stage">
-  <video id="v1" src="asserts/video1.mp4" playsinline preload="auto"></video>
-  <video id="v2" src="asserts/video2.mp4" playsinline preload="auto"></video>
-  <video id="v3" src="asserts/video3.mp4" playsinline preload="auto"></video>
 
-  <div id="vignette"></div>
+<!-- ─── BACKGROUND ORBS ─── -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
 
-  <div id="title"><span class="w1">The</span><span class="w2">Choice</span></div>
-
-  <div id="story" class="overlay-box">
-    <p>You are on a quiet walk at night.</p>
-    <p>Train speeds toward the person.</p>
-    <p>You realize your choice can redirect the train.</p>
-  </div>
-
-  <div id="choices">
-    <button class="btn" id="btnLeft">Do Not Pull</button>
-    <button class="btn" id="btnRight">Pull the Lever</button>
-  </div>
-
-  <div id="credits" class="overlay-box">
-    <div class="scroll">
-      <h3>The Choice</h3>
-      <div class="block"><span class="role">Directed by</span><span class="name">GPT-5.4</span></div>
-      <div class="block"><span class="role">Written by</span><span class="name">GPT-5.4</span></div>
-      <div class="block"><span class="role">Starring</span><span class="name">You</span></div>
-      <div class="block"><span class="role">Game Development</span><span class="name">Claude 4.7</span></div>
-      <div class="block"><span class="role">Cinematography</span><span class="name">Sora-2 Pro</span></div>
-      <div class="block"><span class="role">Edited by</span><span class="name">Sora-2 Pro</span></div>
-      <div class="block"><span class="role">Original Score</span><span class="name">Philippa Ruth Foot</span></div>
-      <div class="block"><span class="role">Production Design</span><span class="name">DreamQuest</span></div>
-      <div class="block"><span class="role">Sound Design</span><span class="name">Sora-2 Pro</span></div>
-      <div class="block"><span class="role">Costume Design</span><span class="name">Sora-2 Pro</span></div>
-      <div class="block"><span class="role">Visual Effects</span><span class="name">Sora-2 Pro</span></div>
-      <div class="block"><span class="role">Casting</span><span class="name">DreamQuest</span></div>
-      <div class="block"><span class="role">Executive Producers</span><span class="name">DreamQuest</span><span class="name">Clara Yoon</span></div>
-      <div class="block"><span class="role">Produced by</span><span class="name">DreamQuest</span></div>
+<!-- ─── CHAT / LANDING PAGE ─── -->
+<div class="page" id="page-chat">
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      DreamQuest
     </div>
-    <div class="thankyou">
-      <h3>Thank You</h3>
+    <div class="demo-badge">Static Demo</div>
+  </div>
+
+  <div class="hero">
+    <h1 class="hero-title">Play Your Imagination</h1>
+    <p class="hero-sub">Turn any story, video, or idea into an AI-generated interactive game.</p>
+    <div class="chips">
+      <span class="chip" onclick="fillPrompt(this)">A trolley problem thriller</span>
+      <span class="chip" onclick="fillPrompt(this)">Sci-fi mystery on a space station</span>
+      <span class="chip" onclick="fillPrompt(this)">Ancient forest survival</span>
+      <span class="chip" onclick="fillPrompt(this)">Moral dilemma in war time</span>
     </div>
   </div>
 
-  <div id="intro">
-    <div class="press">Press any key to start</div>
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea
+        id="prompt-input"
+        placeholder="Tell me your idea…"
+        rows="1"
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+      <button class="send-btn" id="send-btn" onclick="startBuild()" title="Generate game">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+        </svg>
+      </button>
+    </div>
+    <p class="input-hint">
+      This is a <strong>static demo</strong> — DreamQuest will always load the same sample game regardless of your prompt.
+    </p>
   </div>
 </div>
 
+<!-- ─── BUILDING PAGE ─── -->
+<div class="page hidden" id="page-building">
+  <div class="build-card">
+    <div class="build-header">
+      <div class="logo-icon">✦</div>
+      <div>
+        <h2>Building your game…</h2>
+        <p>DreamQuest AI is generating your experience</p>
+      </div>
+    </div>
+
+    <div class="prompt-echo" id="prompt-echo"></div>
+
+    <div class="steps">
+      <div class="step" id="step-1">
+        <div class="step-icon" id="icon-1">1</div>
+        <span>Parsing narrative structure &amp; themes</span>
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-icon" id="icon-2">2</div>
+        <span>Generating cinematic scenes with Sora-2 Pro</span>
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-icon" id="icon-3">3</div>
+        <span>Composing branching storyline</span>
+      </div>
+      <div class="step" id="step-4">
+        <div class="step-icon" id="icon-4">4</div>
+        <span>Finalizing game engine &amp; interactions</span>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── DONE PAGE ─── -->
+<div class="page hidden" id="page-done">
+  <div class="done-card">
+    <div class="done-icon">✓</div>
+    <h2>Your game is ready!</h2>
+    <p>DreamQuest has finished generating your interactive experience.<br>Click below to start playing.</p>
+    <a class="play-btn" href="game.html">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="5,3 19,12 5,21"/>
+      </svg>
+      Play Game
+    </a>
+    <p class="done-note">
+      <strong>Demo note:</strong> This is a static prototype. Every prompt generates the same sample game —
+      "The Choice" — a trolley problem interactive film. Real AI generation is not yet enabled.
+    </p>
+  </div>
+</div>
+
+<div class="disclaimer">
+  DreamQuest · Static Demo · Game content is pre-built and does not change based on your input
+</div>
+
 <script>
-  const v1 = document.getElementById('v1');
-  const v2 = document.getElementById('v2');
-  const v3 = document.getElementById('v3');
-  const intro = document.getElementById('intro');
-  const story = document.getElementById('story');
-  const storyLines = story.querySelectorAll('p');
-  const choices = document.getElementById('choices');
-  const credits = document.getElementById('credits');
-  const btnLeft = document.getElementById('btnLeft');
-  const btnRight = document.getElementById('btnRight');
+  const promptInput = document.getElementById('prompt-input');
+  const sendBtn = document.getElementById('send-btn');
 
-  let started = false;
+  // Auto-resize textarea
+  promptInput.addEventListener('input', () => {
+    promptInput.style.height = 'auto';
+    promptInput.style.height = Math.min(promptInput.scrollHeight, 180) + 'px';
+    sendBtn.classList.toggle('active', promptInput.value.trim().length > 0);
+  });
 
-  // Show the first frame of video 1 behind the intro overlay
-  v1.classList.add('active');
-  v1.muted = true;
-  const showFirstFrame = () => {
-    try { v1.currentTime = 0.05; } catch (e) {}
-    v1.pause();
-  };
-  if (v1.readyState >= 1) showFirstFrame();
-  else v1.addEventListener('loadedmetadata', showFirstFrame, { once: true });
-
-  function startExperience() {
-    if (started) return;
-    started = true;
-    intro.classList.add('hidden');
-    v1.muted = false;
-    v1.play().catch(() => { v1.muted = true; v1.play().catch(() => {}); });
-
-    // Reveal story text line by line
-    setTimeout(() => story.classList.add('show'), 600);
-    const lineDelay = 2200;
-    const lineStart = 1200;
-    storyLines.forEach((line, i) => {
-      setTimeout(() => line.classList.add('show'), lineStart + i * lineDelay);
-    });
-    // After all lines shown, hold briefly then fade the note out
-    const allShown = lineStart + storyLines.length * lineDelay;
-    setTimeout(() => story.classList.remove('show'), allShown + 1500);
-  }
-
-  document.addEventListener('keydown', startExperience);
-  document.addEventListener('click', startExperience);
-
-  // Show choices near the end of video 1 + gradually slow playback
-  v1.addEventListener('timeupdate', () => {
-    if (!v1.duration) return;
-    const remaining = v1.duration - v1.currentTime;
-    if (remaining <= 4) {
-      choices.classList.add('show');
-    }
-    // Ease playback rate from 1.0 down to ~0.25 over the last 4 seconds
-    if (remaining <= 4 && remaining > 0) {
-      const t = remaining / 4; // 1 -> 0
-      const rate = 0.25 + (1 - 0.25) * t * t; // ease-in
-      v1.playbackRate = Math.max(0.25, Math.min(1, rate));
+  // Enter to submit (shift+enter for newline)
+  promptInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (promptInput.value.trim()) startBuild();
     }
   });
 
-  v1.addEventListener('ended', () => {
-    // Freeze on last frame if user hasn't chosen
-    v1.pause();
-    v1.playbackRate = 1;
-  });
-
-  function playEnding(video) {
-    choices.classList.remove('show');
-    story.classList.remove('show');
-    v1.pause();
-    v1.currentTime = 0;
-    v1.playbackRate = 1;
-    v1.classList.remove('active');
-    video.classList.add('active');
-    video.play().catch(() => {});
-
-    let creditsShown = false;
-    video.addEventListener('timeupdate', function onTime() {
-      if (!video.duration) return;
-      const remaining = video.duration - video.currentTime;
-      if (remaining <= 7 && !creditsShown) {
-        credits.classList.add('show');
-        creditsShown = true;
-      }
-      // Ease playback rate from 1.0 down to ~0.2 only in the final 1.8 seconds
-      if (remaining <= 1.8 && remaining > 0) {
-        const t = remaining / 1.8;
-        const rate = 0.2 + (1 - 0.2) * t * t;
-        video.playbackRate = Math.max(0.2, Math.min(1, rate));
-      }
-    });
-
-    video.addEventListener('ended', () => {
-      video.pause();
-      video.playbackRate = 1;
-      credits.classList.add('show');
-    });
+  function fillPrompt(chip) {
+    promptInput.value = chip.textContent;
+    promptInput.dispatchEvent(new Event('input'));
+    promptInput.focus();
   }
 
-  btnLeft.addEventListener('click', (e) => {
-    e.stopPropagation();
-    playEnding(v2);
-  });
-  btnRight.addEventListener('click', (e) => {
-    e.stopPropagation();
-    playEnding(v3);
-  });
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function startBuild() {
+    const prompt = promptInput.value.trim();
+    if (!prompt) return;
+
+    document.getElementById('prompt-echo').textContent = '"' + prompt + '"';
+    showPage('page-building');
+    runBuildSteps();
+  }
+
+  function runBuildSteps() {
+    const bar = document.getElementById('progress-bar');
+    // Step timings (ms after page shows)
+    const schedule = [
+      { stepId: 'step-1', iconId: 'icon-1', startMs: 200,  doneMs: 900,  progress: 22 },
+      { stepId: 'step-2', iconId: 'icon-2', startMs: 950,  doneMs: 1900, progress: 50 },
+      { stepId: 'step-3', iconId: 'icon-3', startMs: 1950, doneMs: 2700, progress: 74 },
+      { stepId: 'step-4', iconId: 'icon-4', startMs: 2750, doneMs: 3500, progress: 100 },
+    ];
+
+    schedule.forEach(({ stepId, iconId, startMs, doneMs, progress }) => {
+      setTimeout(() => {
+        const step = document.getElementById(stepId);
+        const icon = document.getElementById(iconId);
+        step.classList.add('active');
+        icon.textContent = '↻';
+      }, startMs);
+
+      setTimeout(() => {
+        const step = document.getElementById(stepId);
+        const icon = document.getElementById(iconId);
+        step.classList.remove('active');
+        step.classList.add('done');
+        icon.textContent = '✓';
+        bar.style.width = progress + '%';
+      }, doneMs);
+    });
+
+    // Transition to done page after all steps complete
+    setTimeout(() => showPage('page-done'), 3800);
+  }
 </script>
 </body>
 </html>
